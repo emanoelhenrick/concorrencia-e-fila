@@ -14,7 +14,11 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "test:concurrency:pessimistic": "ts-node scripts/concurrency-test.ts pessimistic",
     "test:concurrency:optimistic": "ts-node scripts/concurrency-test.ts optimistic",
-    "test:concurrency:naive": "ts-node scripts/concurrency-test.ts naive"
+    "test:concurrency:naive": "ts-node scripts/concurrency-test.ts naive",
+    
+    "test:concurrency:k6:naive": "k6 run -e STRATEGY=naive scripts/concurrency-test.k6.ts",
+    "test:concurrency:k6:pessimistic": "k6 run -e STRATEGY=pessimistic scripts/concurrency-test.k6.ts",
+    "test:concurrency:k6:optimistic": "k6 run -e STRATEGY=optimistic scripts/concurrency-test.k6.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
@@ -27,6 +31,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/k6": "^2.2.1",
     "@types/node": "^20.14.10",
     "prisma": "^5.19.1",
     "ts-node": "^10.9.2",
