@@ -219,6 +219,40 @@ CONCURRENT_REQUESTS=100 QUANTITY_PER_REQUEST=1 npm run test:concurrency:pessimis
 
 **Resultado esperado (`pessimistic` e `optimistic`):** estoque final sempre igual ao esperado e nunca negativo — nenhuma venda além da quantidade disponível, independentemente da quantidade de requisições simultâneas.
 
+### Script alternativo: teste de carga/concorrência com K6
+
+Além do script Node (`scripts/concurrency-test.ts`), o mesmo experimento foi reproduzido em `scripts/concurrency-test.k6.ts`, usando [K6](https://k6.io/) — ferramenta dedicada a testes de carga/concorrência, citada explicitamente no requisito do trabalho. Ele cobre o mesmo cenário (requisições simultâneas de checkout + verificação de consistência de estoque), mas com concorrência real via múltiplos VUs (*virtual users*) do K6 em vez de `Promise.all` no event loop do Node.
+
+**Instalação do K6** (uma vez só):
+
+```bash
+# macOS
+brew install k6
+
+# Linux (Debian/Ubuntu)
+curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+sudo apt-get update && sudo apt-get install k6
+```
+
+Requer **K6 v0.57+**, que roda arquivos `.ts` nativamente (`k6 run script.ts`), sem build step.
+
+**Como rodar** (com a API já no ar e o banco recém-populado via `npm run prisma:seed`):
+
+```bash
+k6 run -e STRATEGY=naive scripts/concurrency-test.k6.ts         # baseline SEM controle
+npm run prisma:seed
+k6 run -e STRATEGY=pessimistic scripts/concurrency-test.k6.ts   # técnica principal
+npm run prisma:seed
+k6 run -e STRATEGY=optimistic scripts/concurrency-test.k6.ts    # técnica alternativa
+```
+
+Variáveis opcionais (mesmo espírito do script Node): `BASE_URL`, `PRODUCT_ID`, `CONCURRENT_REQUESTS`, `QUANTITY_PER_REQUEST`.
+
+**O que o script faz:** cada VU dispara 1 requisição de checkout (`CONCURRENT_REQUESTS` VUs simultâneos, uma iteração cada), contabiliza confirmados/rejeitados/com erro via métricas `Counter`, lê o estoque antes (`setup()`) e depois (`teardown()`) via métricas `Gauge`, e ao final o `handleSummary()` calcula `estoque esperado = inicial - confirmados * quantidade` e imprime `✅ CONSISTENTE` ou `❌ INCONSISTÊNCIA DETECTADA` — mesmo critério do script Node — além de gerar `consistency-report.json` com os números da rodada.
+
+**Resultado esperado:** o mesmo padrão da seção anterior — inconsistência no `naive`, consistência no `pessimistic` e no `optimistic`.
+
 ---
 
 ## 6. Fila assíncrona de notificações (BullMQ + Redis)
