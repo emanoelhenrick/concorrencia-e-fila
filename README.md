@@ -267,7 +267,7 @@ src/services/
 └── notification.processor.ts  # lógica executada pelo worker para cada job
 ```
 
-## 8. Uso de IA (Claude) no desenvolvimento
+## 7. Uso de IA (Claude) no desenvolvimento
 
 O assistente de IA **Claude (Anthropic)** foi utilizado como apoio ao longo do desenvolvimento deste trabalho, com foco principal em **explicar e detalhar o funcionamento dos mecanismos implementados**:
 
