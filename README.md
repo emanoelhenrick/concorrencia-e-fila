@@ -240,11 +240,11 @@ Requer **K6 v0.57+**, que roda arquivos `.ts` nativamente (`k6 run script.ts`), 
 **Como rodar** (com a API já no ar e o banco recém-populado via `npm run prisma:seed`):
 
 ```bash
-k6 run -e STRATEGY=naive scripts/concurrency-test.k6.ts         # baseline SEM controle
+npm run test:concurrency:k6:naive         # baseline SEM controle
 npm run prisma:seed
-k6 run -e STRATEGY=pessimistic scripts/concurrency-test.k6.ts   # técnica principal
+npm run test:concurrency:k6:pessimistic   # técnica principal
 npm run prisma:seed
-k6 run -e STRATEGY=optimistic scripts/concurrency-test.k6.ts    # técnica alternativa
+npm run test:concurrency:k6:optimistic    # técnica alternativa
 ```
 
 Variáveis opcionais (mesmo espírito do script Node): `BASE_URL`, `PRODUCT_ID`, `CONCURRENT_REQUESTS`, `QUANTITY_PER_REQUEST`.
