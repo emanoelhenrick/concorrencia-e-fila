@@ -294,8 +294,7 @@ Cliente -> POST /checkout/:productId
               ▼
      simula chamada a provedor externo (delay de 1s)
               │
-              ├── sucesso (≈85%) -> Notification.status = SENT
-              └── falha simulada (≈15%) -> Notification.status = FAILED
+              ├── sucesso -> Notification.status = SENT
                         │
                         ▼
               BullMQ reagenda automaticamente (retry com backoff exponencial,
@@ -352,7 +351,7 @@ O assistente de IA **Claude (Anthropic)** foi utilizado como apoio ao longo do d
 
 - **Apoio na estrutura inicial do projeto**: implementação do boilerplate Node + TypeScript + Express + Prisma, além da modelagem das tabelas (`Product`, `Order`, `OrderItem`, `Notification`) e a configuração de build/scripts, sempre revisada e ajustada durante o desenvolvimento.
 - **Explicação das técnicas de concorrência**: o principal uso do Claude foi **explicar em detalhes, linha a linha, como cada mecanismo funciona por dentro** nas três versões do checkout (`naive`, `pessimistic`, `optimistic`) — por exemplo, por que `SELECT ... FOR UPDATE` bloqueia outras transações no lock pessimista, e por que o `UPDATE ... WHERE id = ? AND version = ?` do lock otimista funciona como uma escrita condicional atômica capaz de detectar conflitos sem precisar travar a linha antes. Essas explicações foram essenciais para entender **o motivo** de cada abordagem funcionar.
-- **Explicação da fila assíncrona**: da mesma forma, ajudou a entender o funcionamento da fila de notificações com BullMQ + Redis: por que o *producer* (rota HTTP) só publica o job e não espera o processamento, por que o *worker* precisa rodar como processo separado, e como o retry com backoff exponencial trata falhas simuladas no processamento.
+- **Explicação da fila assíncrona**: da mesma forma, ajudou a entender o funcionamento da fila de notificações com BullMQ + Redis: por que o *producer* (rota HTTP) só publica o job e não espera o processamento, por que o *worker* precisa rodar como processo separado, e como o retry com backoff exponencial trata falhas.
 - **Depuração de erros de execução**: durante os testes locais, ajudou a diagnosticar e explicar a causa de problemas práticos (ex.: `DATABASE_URL` não carregada no script de seed, crash do servidor por *unhandled promise rejection*, ordem incorreta de `deleteMany()` violando chave estrangeira após a criação da tabela `Notification`, necessidade de rodar `prisma migrate dev` após alterar o schema), o que ajudou a entender a causa raiz de cada erro e não só a corrigi-lo.
 - **Documentação**: este próprio `README.md` foi redigido com apoio do Claude.
 
